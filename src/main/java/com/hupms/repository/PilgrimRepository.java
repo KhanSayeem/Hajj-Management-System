@@ -77,7 +77,7 @@ public class PilgrimRepository {
     public List<Pilgrim> findByAgentId(Long agentId) {
         return jdbc.query("""
                 SELECT p.* FROM pilgrims p
-                JOIN groups g ON g.id = p.group_id
+                JOIN `groups` g ON g.id = p.group_id
                 WHERE g.agent_id = ?
                 ORDER BY p.id
                 """, mapper, agentId);
@@ -104,7 +104,7 @@ public class PilgrimRepository {
     public int countByPackageId(Long packageId) {
         Integer count = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM pilgrims p
-                JOIN groups g ON g.id = p.group_id
+                JOIN `groups` g ON g.id = p.group_id
                 WHERE g.package_id = ?
                 """, Integer.class, packageId);
         return count == null ? 0 : count;
@@ -116,7 +116,7 @@ public class PilgrimRepository {
         }
         Integer count = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM pilgrims p
-                JOIN groups g ON g.id = p.group_id
+                JOIN `groups` g ON g.id = p.group_id
                 WHERE g.package_id = ? AND p.id <> ?
                 """, Integer.class, packageId, excludedPilgrimId);
         return count == null ? 0 : count;

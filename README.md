@@ -6,10 +6,11 @@ Spring Boot REST API for the Hajj & Umrah Pilgrim Management System PRD.
 
 - Java 17
 - Maven
-- PostgreSQL database named `hupms`
+- XAMPP MySQL running on port `3306`
+- MySQL database named `hupms`; the JDBC URL can create it automatically when the user has permission
 
-Set `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` as environment variables, or update the defaults in
-`src/main/resources/application.properties` for local demos.
+The default local database login is XAMPP's usual `root` user with a blank password. Set `DB_URL`,
+`DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET` as environment variables if your setup differs.
 
 ## Run
 

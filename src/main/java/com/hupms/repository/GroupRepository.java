@@ -36,7 +36,7 @@ public class GroupRepository {
         KeyHolder keys = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement("""
-                    INSERT INTO groups (group_name, package_id, agent_id, max_size)
+                    INSERT INTO `groups` (group_name, package_id, agent_id, max_size)
                     VALUES (?, ?, ?, ?)
                     """, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, group.getGroupName());
@@ -49,37 +49,37 @@ public class GroupRepository {
     }
 
     public List<Group> findAll() {
-        return jdbc.query("SELECT * FROM groups ORDER BY id", mapper);
+        return jdbc.query("SELECT * FROM `groups` ORDER BY id", mapper);
     }
 
     public List<Group> findByAgentId(Long agentId) {
-        return jdbc.query("SELECT * FROM groups WHERE agent_id = ? ORDER BY id", mapper, agentId);
+        return jdbc.query("SELECT * FROM `groups` WHERE agent_id = ? ORDER BY id", mapper, agentId);
     }
 
     public Optional<Group> findById(Long id) {
-        return jdbc.query("SELECT * FROM groups WHERE id = ?", mapper, id).stream().findFirst();
+        return jdbc.query("SELECT * FROM `groups` WHERE id = ?", mapper, id).stream().findFirst();
     }
 
     public Optional<Group> lockById(Long id) {
-        return jdbc.query("SELECT * FROM groups WHERE id = ? FOR UPDATE", mapper, id).stream().findFirst();
+        return jdbc.query("SELECT * FROM `groups` WHERE id = ? FOR UPDATE", mapper, id).stream().findFirst();
     }
 
     public boolean existsByIdAndAgentId(Long id, Long agentId) {
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM groups WHERE id = ? AND agent_id = ?", Integer.class, id, agentId);
+        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM `groups` WHERE id = ? AND agent_id = ?", Integer.class, id, agentId);
         return count != null && count > 0;
     }
 
     public int countByPackageId(Long packageId) {
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM groups WHERE package_id = ?", Integer.class, packageId);
+        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM `groups` WHERE package_id = ?", Integer.class, packageId);
         return count == null ? 0 : count;
     }
 
     public void update(Group group) {
-        jdbc.update("UPDATE groups SET group_name = ?, max_size = ? WHERE id = ?",
+        jdbc.update("UPDATE `groups` SET group_name = ?, max_size = ? WHERE id = ?",
                 group.getGroupName(), group.getMaxSize(), group.getId());
     }
 
     public void delete(Long id) {
-        jdbc.update("DELETE FROM groups WHERE id = ?", id);
+        jdbc.update("DELETE FROM `groups` WHERE id = ?", id);
     }
 }
