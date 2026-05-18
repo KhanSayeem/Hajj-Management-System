@@ -101,6 +101,32 @@ public class PilgrimRepository {
         return count == null ? 0 : count;
     }
 
+    public int countByPackageId(Long packageId) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM pilgrims p
+                JOIN groups g ON g.id = p.group_id
+                WHERE g.package_id = ?
+                """, Integer.class, packageId);
+        return count == null ? 0 : count;
+    }
+
+    public int countByPackageIdExcluding(Long packageId, Long excludedPilgrimId) {
+        if (excludedPilgrimId == null) {
+            return countByPackageId(packageId);
+        }
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM pilgrims p
+                JOIN groups g ON g.id = p.group_id
+                WHERE g.package_id = ? AND p.id <> ?
+                """, Integer.class, packageId, excludedPilgrimId);
+        return count == null ? 0 : count;
+    }
+
+    public boolean existsByMahramId(Long mahramId) {
+        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM pilgrims WHERE mahram_id = ?", Integer.class, mahramId);
+        return count != null && count > 0;
+    }
+
     public void update(Pilgrim pilgrim) {
         jdbc.update("""
                 UPDATE pilgrims

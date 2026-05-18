@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "HUPMS Demo Flow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register Admin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Admin User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"securepass123\",\n  \"role\": \"ADMIN\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login Admin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"securepass123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create Package",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+        ],
+        "url": "{{baseUrl}}/api/packages",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Economy Umrah 2026\",\n  \"type\": \"UMRAH\",\n  \"year\": 2026,\n  \"capacity\": 40,\n  \"priceUsd\": 2500.00,\n  \"departureDate\": \"2026-07-01\",\n  \"returnDate\": \"2026-07-14\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Register Agent",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Agent User\",\n  \"email\": \"agent@example.com\",\n  \"password\": \"securepass123\",\n  \"role\": \"AGENT\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login Agent",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"agent@example.com\",\n  \"password\": \"securepass123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create Group",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{agentToken}}" }
+        ],
+        "url": "{{baseUrl}}/api/groups",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"groupName\": \"Group A - Dhaka North\",\n  \"packageId\": {{packageId}},\n  \"maxSize\": 20\n}"
+        }
+      }
+    },
+    {
+      "name": "Register Pilgrim",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{agentToken}}" }
+        ],
+        "url": "{{baseUrl}}/api/pilgrims",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Fatima Begum\",\n  \"email\": \"fatima@example.com\",\n  \"password\": \"securepass123\",\n  \"passportNumber\": \"BD1234567\",\n  \"dateOfBirth\": \"1980-05-15\",\n  \"nationality\": \"Bangladeshi\",\n  \"phone\": \"+8801711000000\",\n  \"gender\": \"FEMALE\",\n  \"groupId\": {{groupId}},\n  \"mahramId\": null\n}"
+        }
+      }
+    },
+    {
+      "name": "Update Pilgrim Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{agentToken}}" }
+        ],
+        "url": "{{baseUrl}}/api/pilgrims/{{pilgrimId}}/status",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"APPROVED\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Unauthorized Admin Endpoint With Agent",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{agentToken}}" }],
+        "url": "{{baseUrl}}/api/audit"
+      }
+    },
+    {
+      "name": "View Audit Logs",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "url": "{{baseUrl}}/api/audit"
+      }
+    }
+  ]
+}

@@ -35,7 +35,7 @@ public class GroupController {
     @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
     public ApiResponse<GroupResponse> create(@Valid @RequestBody GroupRequest request, Principal principal) {
         User user = authService.currentUser(principal.getName());
-        return ApiResponse.success("Group created successfully", groupService.create(request, user.getId()));
+        return ApiResponse.success("Group created successfully", groupService.create(request, user.getId(), user.getRole()));
     }
 
     @GetMapping

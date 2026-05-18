@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS ux_users_single_admin ON users (role) WHERE role = 'ADMIN';
+
 CREATE TABLE IF NOT EXISTS packages (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,

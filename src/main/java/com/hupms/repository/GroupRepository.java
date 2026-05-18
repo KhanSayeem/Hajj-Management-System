@@ -60,6 +60,10 @@ public class GroupRepository {
         return jdbc.query("SELECT * FROM groups WHERE id = ?", mapper, id).stream().findFirst();
     }
 
+    public Optional<Group> lockById(Long id) {
+        return jdbc.query("SELECT * FROM groups WHERE id = ? FOR UPDATE", mapper, id).stream().findFirst();
+    }
+
     public boolean existsByIdAndAgentId(Long id, Long agentId) {
         Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM groups WHERE id = ? AND agent_id = ?", Integer.class, id, agentId);
         return count != null && count > 0;

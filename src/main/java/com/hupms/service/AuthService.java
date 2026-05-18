@@ -4,6 +4,8 @@ import com.hupms.dto.request.LoginRequest;
 import com.hupms.dto.request.RegisterRequest;
 import com.hupms.dto.response.LoginResponse;
 import com.hupms.dto.response.UserResponse;
+import com.hupms.enums.Role;
+import com.hupms.exception.UnauthorizedAccessException;
 import com.hupms.model.User;
 import com.hupms.repository.UserRepository;
 import com.hupms.security.JwtTokenProvider;
@@ -24,6 +26,9 @@ public class AuthService {
     }
 
     public UserResponse register(RegisterRequest request) {
+        if (request.role() == Role.ADMIN && userRepository.existsByRole(Role.ADMIN)) {
+            throw new UnauthorizedAccessException("Admin account already exists");
+        }
         User user = new User();
         user.setFullName(request.fullName());
         user.setEmail(request.email());

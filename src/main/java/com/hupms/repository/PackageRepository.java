@@ -62,6 +62,10 @@ public class PackageRepository {
         return jdbc.query("SELECT * FROM packages WHERE id = ?", mapper, id).stream().findFirst();
     }
 
+    public Optional<TravelPackage> lockById(Long id) {
+        return jdbc.query("SELECT * FROM packages WHERE id = ? FOR UPDATE", mapper, id).stream().findFirst();
+    }
+
     public void update(TravelPackage value) {
         jdbc.update("""
                 UPDATE packages SET name=?, type=?, year=?, capacity=?, price_usd=?, departure_date=?, return_date=?

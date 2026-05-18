@@ -12,8 +12,10 @@ import com.hupms.exception.ResourceNotFoundException;
 import com.hupms.exception.UnauthorizedAccessException;
 import com.hupms.model.Group;
 import com.hupms.model.Pilgrim;
+import com.hupms.model.TravelPackage;
 import com.hupms.model.User;
 import com.hupms.repository.GroupRepository;
+import com.hupms.repository.PackageRepository;
 import com.hupms.repository.PilgrimRepository;
 import com.hupms.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class PilgrimService implements AuditableService {
@@ -35,15 +38,18 @@ public class PilgrimService implements AuditableService {
     private final UserRepository userRepository;
     private final PilgrimRepository pilgrimRepository;
     private final GroupRepository groupRepository;
+    private final PackageRepository packageRepository;
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
 
     public PilgrimService(UserRepository userRepository, PilgrimRepository pilgrimRepository,
-                          GroupRepository groupRepository, AuditService auditService,
+                          GroupRepository groupRepository, PackageRepository packageRepository,
+                          AuditService auditService,
                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.pilgrimRepository = pilgrimRepository;
         this.groupRepository = groupRepository;
+        this.packageRepository = packageRepository;
         this.auditService = auditService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -54,12 +60,13 @@ public class PilgrimService implements AuditableService {
             throw new DuplicatePassportException("Passport number already exists");
         }
         if (request.groupId() != null) {
-            ensureGroupOwnedAndAvailable(request.groupId(), agentId);
+            ensureGroupOwnedAndAvailable(request.groupId(), agentId, null);
         }
         User user = new User();
         user.setFullName(request.fullName());
         user.setEmail(request.email());
-        user.setPasswordHash(passwordEncoder.encode(request.passportNumber()));
+        String rawPassword = request.password() == null ? UUID.randomUUID().toString() : request.password();
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
         user.setRole(Role.PILGRIM);
         user.setActive(true);
         Long userId = userRepository.save(user);
@@ -137,15 +144,26 @@ public class PilgrimService implements AuditableService {
         return PilgrimResponse.from(pilgrim);
     }
 
+    @Transactional
     public PilgrimResponse assignGroup(Long pilgrimId, Long groupId, Long agentId) {
         Pilgrim pilgrim = pilgrimRepository.findById(pilgrimId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pilgrim not found"));
         if (pilgrim.getGroupId() != null && !groupRepository.existsByIdAndAgentId(pilgrim.getGroupId(), agentId)) {
             throw new UnauthorizedAccessException("Agent cannot access this pilgrim");
         }
-        ensureGroupOwnedAndAvailable(groupId, agentId);
-        pilgrimRepository.assignGroup(pilgrimId, groupId);
+        if (pilgrimRepository.existsByMahramId(pilgrimId)) {
+            throw new IllegalArgumentException("Cannot move a mahram while pilgrims still reference him");
+        }
+        ensureGroupOwnedAndAvailable(groupId, agentId, pilgrimId);
+        Long previousGroupId = pilgrim.getGroupId();
         pilgrim.setGroupId(groupId);
+        try {
+            validateMahram(pilgrim);
+        } catch (RuntimeException ex) {
+            pilgrim.setGroupId(previousGroupId);
+            throw ex;
+        }
+        pilgrimRepository.assignGroup(pilgrimId, groupId);
         log(agentId, "PILGRIM_GROUP_ASSIGNED", "Pilgrim", pilgrimId, "{\"groupId\":" + groupId + "}");
         return PilgrimResponse.from(pilgrim);
     }
@@ -169,13 +187,18 @@ public class PilgrimService implements AuditableService {
         return pilgrim;
     }
 
-    private void ensureGroupOwnedAndAvailable(Long groupId, Long agentId) {
-        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+    private void ensureGroupOwnedAndAvailable(Long groupId, Long agentId, Long excludedPilgrimId) {
+        Group group = groupRepository.lockById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
         if (!group.getAgentId().equals(agentId)) {
             throw new UnauthorizedAccessException("Agent cannot access this group");
         }
         if (pilgrimRepository.countByGroupId(groupId) >= group.getMaxSize()) {
             throw new GroupCapacityExceededException("Group capacity exceeded");
+        }
+        TravelPackage travelPackage = packageRepository.lockById(group.getPackageId())
+                .orElseThrow(() -> new ResourceNotFoundException("Package not found"));
+        if (pilgrimRepository.countByPackageIdExcluding(group.getPackageId(), excludedPilgrimId) >= travelPackage.getCapacity()) {
+            throw new GroupCapacityExceededException("Package capacity exceeded");
         }
     }
 

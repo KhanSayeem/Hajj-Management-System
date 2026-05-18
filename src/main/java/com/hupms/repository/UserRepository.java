@@ -57,4 +57,9 @@ public class UserRepository {
     public Optional<User> findById(Long id) {
         return jdbc.query("SELECT * FROM users WHERE id = ?", mapper, id).stream().findFirst();
     }
+
+    public boolean existsByRole(Role role) {
+        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM users WHERE role = ?", Integer.class, role.name());
+        return count != null && count > 0;
+    }
 }
